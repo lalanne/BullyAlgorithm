@@ -14,7 +14,7 @@ public class CoordinatorTimerExpired extends TimerTask{
         System.out.println("[" +Calendar.getInstance().getTimeInMillis()+ "]Coordinator timer expired......., id " + process.getIdentifier() + 
         		" sending time out message");
         Message timeOut = new TimeOutCoordinatorMessage(process.getIdentifier());
-        process.cleanQueue();
+        process.clear();
         process.sendMessage(timeOut);
     }
 }

@@ -15,7 +15,7 @@ public class ElectionTimerExpired extends TimerTask{
         System.out.println("[" +Calendar.getInstance().getTimeInMillis()+ "]Election timer expired......., id " + process.getIdentifier() + 
         		" sending time out message");
         Message timeOut = new TimeOutAnswerMessage(process.getIdentifier());
-        process.cleanQueue();
+        process.clear();
         process.sendMessage(timeOut);
     }
 }
