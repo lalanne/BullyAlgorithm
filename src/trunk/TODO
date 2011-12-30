@@ -1,0 +1,9 @@
+*The system is synchronous.
+	-Uses timeouts to detect process failures.
+*Algorithm Assumes that processes have minimal a priori knowledge of one another:
+	-Each process knows how to communicate with processes with higher identifiers.
+	-Assumes that each process knows which processes have higher identifiers.
+*Three Types of messages:
+	-Election: announce an election.
+	-Answer: sent in response of an election message.
+	-Coordinator: announce the identity of the elected process 'coordinator'.
