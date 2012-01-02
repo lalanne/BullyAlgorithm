@@ -1,6 +1,14 @@
 package bully;
 
-public interface Message {
-	public String getType();
-	public int getFrom();
+public abstract class Message {
+	protected String type;
+	protected int from;
+	
+	public String getType(){
+		return type;
+	}
+	
+	public final int getFrom(){
+		return from;
+	}
 }

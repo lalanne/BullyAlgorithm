@@ -1,18 +1,9 @@
 package bully;
 
-public class Answer implements Message {
-	private String type = "Answer";
-	private int from;
+public class Answer extends Message {
 	
 	Answer(final int from){
+		this.type = "Answer";
 		this.from = from;
-	}
-	
-	public String getType(){
-		return type;
-	}
-	
-	public final int getFrom(){
-		return from;
 	}
 }

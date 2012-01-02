@@ -1,18 +1,9 @@
 package bully;
 
-public class Coordinator implements Message{
-	private final String type = "Coordinator";
-	private int from;
+public class Coordinator extends Message{
 	
 	Coordinator(final int from){
 		this.from = from;
-	}
-	
-	public String getType(){
-		return type;
-	}
-	
-	public final int getFrom(){
-		return from;
+		this.type = "Coordinator";
 	}
 }

@@ -1,18 +1,9 @@
 package bully;
 
-public class TimeOutCoordinatorMessage implements Message{
-	private String type = "TimeOutCoordinatorMessage";
-	private int from;
+public class TimeOutCoordinatorMessage extends Message{
 	
 	TimeOutCoordinatorMessage(final int from){
 		this.from = from;
-	}
-	
-	public String getType(){
-		return type;
-	}
-	
-	public final int getFrom(){
-		return from;
+		this.type = "TimeOutCoordinatorMessage";
 	}
 }
