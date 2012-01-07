@@ -1,9 +1,9 @@
 package bully;
 
 import java.util.Calendar;
+import java.util.TimerTask;
 
 public class Protocol {
-	private Timers timers;
 	private boolean amICrashed = false;
 	private boolean amIAlreadyStartAnElection = false;
 	private int iterationCounter = 0;
@@ -11,13 +11,17 @@ public class Protocol {
 	Process[] processContainer;
 	private final int PROCESS_DELAY = 300;
 	private final int CRASH_DELAY = 10000;
+	private final int ANSWER_TIMEOUT_MS = 320;
+	private final int COORDINATOR_TIMEOUT_MS = 160;
 	private int elected = -1;
 	private final int identifier;
+	private Process process= null;
+	MyTimer answerMessageTimer = null;
+	MyTimer coordinatorMessageTimer = null;
 	
-	Protocol(final int identifier, Communicator communicator, Timers timers){
+	Protocol(final int identifier, Communicator communicator){
 		this.communicator = communicator;
 		this.identifier = identifier;
-		this.timers = timers;
 	}
 	
 	public void execute(){
@@ -37,8 +41,8 @@ public class Protocol {
 		while(true){
 			System.out.println("[" +Calendar.getInstance().getTimeInMillis()+ "]I CRASHED, Not responding messages never again id[" + 
 							identifier + "] Stopping timers too!!!!!!!!!!!!");
-			if(timers.getElectionTimer() != null){
-				timers.stopAnswerMessageTimer();
+			if(answerMessageTimer != null){
+				answerMessageTimer.stop();
 			}
 			try{
 				Thread.sleep(CRASH_DELAY);
@@ -53,6 +57,9 @@ public class Protocol {
 		this.processContainer = processContainer;
 	}
 	
+	public void setProcess(Process process){
+		this.process = process;
+	}
 	private void keepAlive(){
 		try{
 			Thread.sleep(PROCESS_DELAY);
@@ -100,7 +107,10 @@ public class Protocol {
 		communicator.sendElectionMessageToBiggerProcesses(processContainer);
 		amIAlreadyStartAnElection = true;
 		System.out.println("[" +Calendar.getInstance().getTimeInMillis()+ "]Starting timer for election in the process ["+ this.identifier +"]");
-		timers.startAnswerMessageTimer();
+		
+		TimerTask electionTimerExpired = new ElectionTimerExpired(process); 
+		MyTimer answerMessageTimer = new MyTimer(electionTimerExpired, ANSWER_TIMEOUT_MS);
+		answerMessageTimer.start();
 	}
 	
 	private void tryToStartAnElection(){
@@ -140,7 +150,9 @@ public class Protocol {
 	private void processATimeOutAnswerMessage(Message message){
 		System.out.println("[" +Calendar.getInstance().getTimeInMillis()+ "]Process id: " + identifier + 
 				" receives a TimeOut Answer message from: " + message.getFrom()+ " stopping the timer. And Im the coordinator!!!!!!!!!");
-		timers.stopAnswerMessageTimer();
+		if(answerMessageTimer != null){
+			answerMessageTimer.stop();
+		}
 		this.elected = this.identifier;
 		communicator.sendCoordinatorMessageToAllLowerProcesses(processContainer);
 	}
@@ -148,7 +160,7 @@ public class Protocol {
 	private void processATimeOutCoordinatorMessage(Message message){
 		System.out.println("[" +Calendar.getInstance().getTimeInMillis()+ "]Process id: " + identifier + 
 				" receives a TimeOut Coordinator message from: " + message.getFrom()+ " stopping the timer. Starting a new election.");
-		timers.stopCoordinatorMessageTimer();
+		coordinatorMessageTimer.stop();
 		if(elected == -1){
 			System.out.println("[" +Calendar.getInstance().getTimeInMillis()+ "]Process id: " + identifier + 
 					" I dont have a current coordinator, so Start election! ");
@@ -165,8 +177,13 @@ public class Protocol {
 				" receives an Answer message from: " + message.getFrom() + 
 				" stopping the timer, there are more important processes than me alive, so cancelling the election.");
 		amIAlreadyStartAnElection = false;
-		timers.stopAnswerMessageTimer();
-		timers.startCoordinatorMessageTimer();
+		if(answerMessageTimer != null){
+			answerMessageTimer.stop();
+		}
+		
+		TimerTask coordinatorTimerExpired = new CoordinatorTimerExpired(process); 
+		coordinatorMessageTimer = new MyTimer(coordinatorTimerExpired, COORDINATOR_TIMEOUT_MS);
+		coordinatorMessageTimer.start();
 	}
 	
 	private void processACoordinatorMessage(Message message){
@@ -175,7 +192,9 @@ public class Protocol {
 		elected = message.getFrom();
 		System.out.println("[" +Calendar.getInstance().getTimeInMillis()+ "]Process id: " + identifier + 
 				" My coordinator process is: [" + message.getFrom() + "]!!!!!!!");
-		timers.stopCoordinatorMessageTimer();
+		if(coordinatorMessageTimer != null){
+			coordinatorMessageTimer.stop();
+		}
 	}
 
 	private void processAnElectionMessage(Message message){

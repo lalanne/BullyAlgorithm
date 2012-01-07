@@ -22,16 +22,15 @@ public class BullyAlgorithm {
 	static Process[] createProcesses(final int numberOfProcessesToInitiate){
 		Process[] processContainer = new Process[numberOfProcessesToInitiate];
 		for(int i=0; i<numberOfProcessesToInitiate; ++i){
-			Timers timers = new Timers();
 			MessageQueue messageQueue = new MessageQueue();
 			Communicator communicator = new Communicator(i, messageQueue);
-			Protocol protocol = new Protocol(i, communicator, timers);
+			Protocol protocol = new Protocol(i, communicator);
 			MyThread myThread = new MyThread(protocol);
 			Process process = new Process(i, 
 										communicator, 
 										protocol,
 										myThread);
-			timers.setProcess(process);
+			protocol.setProcess(process);
 			processContainer[i] = process;
 		}
 		return processContainer;
